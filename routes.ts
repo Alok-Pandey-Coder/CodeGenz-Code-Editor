@@ -1,12 +1,12 @@
-export const publicRoutes: String[] = [
+export const publicRoutes: string[] = [
 
 ]
 
-export const protectedRoutes: String[] = [
+export const protectedRoutes: string[] = [
   "/",
 ]
 
-export const authRoutes: String[] = [
+export const authRoutes: string[] = [
   "/auth/sign-in",
 ]
 
