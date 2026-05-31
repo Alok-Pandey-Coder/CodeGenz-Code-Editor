@@ -19,7 +19,7 @@ export default async function dashboardLayout({children}: {children: React.React
     id: item.id,
     name: item.title,
     //TODO: star
-    starred: false,
+    starred: item.starMark?.[0]?.isMarked || false,
     icon: technologyIconMap[item.template] || "Code2"
   }))
   return (
