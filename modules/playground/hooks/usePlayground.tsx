@@ -6,7 +6,7 @@ import { getPlaygroundById, SaveUpdatedCode } from "../actions";
 
 interface PlagroundData {
   id:string;
-  name?: string
+  title?: string
   [key:string]:any;
 }
 
