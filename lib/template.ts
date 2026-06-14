@@ -3,5 +3,6 @@ export const templatePaths = {
   NEXTJS: "/codegenz-starters/nextjs",
   VUE: "/codegenz-starters/vue",
   HONO: "/codegenz-starters/hono-nodejs-starter",
-  ANGULAR: "/codegenz-starters/angular"
+  ANGULAR: "/codegenz-starters/angular",
+  EXPRESS: "/codegenz-starters/express-simple"
 }
