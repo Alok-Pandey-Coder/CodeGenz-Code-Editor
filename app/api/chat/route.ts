@@ -30,7 +30,7 @@ Keep responses concise but comprehensive. Use code blocks with language specific
   const prompt = fullMessages.map((msg) => `${msg.role}: ${msg.content}`).join("\n\n")
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 15000)
+  const timeoutId = setTimeout(() => controller.abort(), 90000)
 
   try {
     const response = await fetch("http://localhost:11434/api/generate", {

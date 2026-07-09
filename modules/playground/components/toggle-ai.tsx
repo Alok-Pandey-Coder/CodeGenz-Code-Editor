@@ -46,17 +46,22 @@ interface ToggleAIProps {
   suggestionLoading: boolean;
   loadingProgress?: number;
   activeFeature?: string;
+  isChatOpen?: boolean;
+  onChatToggle?: (value: boolean) => void;
 }
 
 const ToggleAI: React.FC<ToggleAIProps> = ({
   isEnabled,
   onToggle,
-
   suggestionLoading,
   loadingProgress = 0,
   activeFeature,
+  isChatOpen: externalIsChatOpen,
+  onChatToggle,
 }) => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [localIsChatOpen, setLocalIsChatOpen] = useState(false);
+  const isChatOpen = externalIsChatOpen !== undefined ? externalIsChatOpen : localIsChatOpen;
+  const setIsChatOpen = onChatToggle || setLocalIsChatOpen;
 
   // Dummy handler for code insertion from AI chat panel
   const handleInsertCode = (code: string, fileName?: string, position?: { line: number; column: number }) => {
@@ -192,10 +197,12 @@ const ToggleAI: React.FC<ToggleAIProps> = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AIChatSidePanel
-      isOpen={isChatOpen}
-      onClose={() => setIsChatOpen(false)}
-      />
+      {!onChatToggle && (
+        <AIChatSidePanel
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
 
     </>
   );

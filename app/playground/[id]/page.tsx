@@ -32,11 +32,14 @@ import { AlertCircle, Bot, FileText, FolderOpen, Save, Settings, X } from "lucid
 import { useParams } from "next/navigation";
 import { writeFileSync } from "node:fs";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AIChatSidePanel } from "@/modules/ai-chat/components/ai-chat-sidebarpanel";
+import { getEditorLanguage } from "@/modules/playground/lib/editor-config";
 import { toast } from "sonner";
 
 const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { playgroundData, isLoading, templateData, error, saveTemplateData } =
     usePlayground(id);
 
@@ -68,6 +71,8 @@ const MainPlaygroundPage = () => {
   useWebContainer({templateData})
 
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
+  const activeFile = openFiles.find((file) => file.id === activeFileId);
+  const hasUnsavedChanges = openFiles.some((file) => file.hasUnsavedChanges);
 
 
   useEffect(() => {
@@ -79,6 +84,71 @@ const MainPlaygroundPage = () => {
       setTemplateData(templateData);
     }
   }, [templateData, setTemplateData, openFiles.length]);
+
+  // Debounced Autosave / Sync changes instantly to WebContainer filesystem for hot reload
+  useEffect(() => {
+    if (!activeFileId || !activeFile) return;
+
+    const currentContent = activeFile.content;
+    const lastSynced = lastSyncedContent.current.get(activeFile.id);
+
+    if (currentContent === lastSynced) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const latestTemplateData = useFileExplorer.getState().templateData;
+        if (!latestTemplateData) return;
+
+        const filePath = findFilePath(activeFile, latestTemplateData);
+        if (!filePath) return;
+
+        // Write directly to WebContainer filesystem to trigger instant dev server compilation and browser hot reload!
+        if (instance && instance.fs) {
+          await instance.fs.writeFile(filePath, currentContent);
+        }
+
+        // Update synced content map to prevent redundant saves
+        lastSyncedContent.current.set(activeFile.id, currentContent);
+
+        // Update database context in background
+        const updatedTemplateData = JSON.parse(JSON.stringify(latestTemplateData));
+        const updateFile = (items: any[]): any[] =>
+          items.map((item) => {
+            if ("folderName" in item) {
+              return { ...item, items: updateFile(item.items) };
+            } else if (
+              item.filename === activeFile.filename &&
+              item.fileExtension === activeFile.fileExtension
+            ) {
+              return { ...item, content: currentContent };
+            }
+            return item;
+          });
+        updatedTemplateData.items = updateFile(updatedTemplateData.items);
+
+        // Save data to database
+        await saveTemplateData(updatedTemplateData);
+        setTemplateData(updatedTemplateData);
+
+        // Mark file changes as successfully saved
+        const updatedOpenFiles = openFiles.map((f) =>
+          f.id === activeFileId
+            ? {
+                ...f,
+                content: currentContent,
+                originalContent: currentContent,
+                hasUnsavedChanges: false,
+              }
+            : f
+        );
+        setOpenFiles(updatedOpenFiles);
+      } catch (err) {
+        console.error("Autosave error:", err);
+      }
+    }, 850); // 850ms debounce after last keystroke
+
+    return () => clearTimeout(timer);
+  }, [activeFileId, activeFile?.content, instance, openFiles, saveTemplateData, setTemplateData, setOpenFiles]);
 
   const wrappedHandleAddFile = useCallback(
     (newFile: TemplateFile, parentPath: string) => {
@@ -145,8 +215,7 @@ const MainPlaygroundPage = () => {
   );
 
 
-  const activeFile = openFiles.find((file) => file.id === activeFileId);
-  const hasUnsavedChanges = openFiles.some((file) => file.hasUnsavedChanges);
+
   const handleFileSelect = (file: TemplateFile) => {
     openFile(file);
   };
@@ -355,28 +424,39 @@ const MainPlaygroundPage = () => {
           onRenameFile={wrappedHandleRenameFile}
           onRenameFolder={wrappedHandleRenameFolder}
         />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+        <SidebarInset className="bg-zinc-50 dark:bg-zinc-950 relative overflow-hidden flex flex-col h-full">
+          {/* Ambient background glow matching hero section */}
+          <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-purple-500/5 dark:bg-purple-500/[0.02] blur-3xl pointer-events-none z-0" />
+          <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-500/5 dark:bg-cyan-500/[0.015] blur-3xl pointer-events-none z-0" />
+
+          <header className="flex h-16 shrink-0 items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md px-6 z-10 select-none shadow-sm relative">
+            <SidebarTrigger className="-ml-1 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200" />
+            <Separator orientation="vertical" className="mr-2 h-4 bg-zinc-200 dark:bg-zinc-800" />
             <div className="flex flex-1 items-center gap-2">
               <div className="flex flex-col flex-1">
-                <h1 className="text-sm font-medium">
+                <h1 className="text-sm font-bold bg-gradient-to-r from-zinc-800 via-zinc-900 to-zinc-700 dark:from-zinc-100 dark:via-zinc-200 dark:to-zinc-300 bg-clip-text text-transparent">
                   {playgroundData?.title || "Code Playground"}
                 </h1>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   {openFiles.length} File(s) Open
-                  {hasUnsavedChanges && "⦿  Unsaved changes"}
+                  {hasUnsavedChanges && (
+                    <span className="flex items-center gap-1 text-amber-500 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      Unsaved changes
+                    </span>
+                  )}
                 </p>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <Tooltip>
-                  <TooltipTrigger>
+                  <TooltipTrigger asChild>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleSave()}
                       disabled={!activeFile || !activeFile.hasUnsavedChanges}
+                      className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/55 hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all shadow-sm"
                     >
                       <Save className="h-4 w-4" />
                     </Button>
@@ -384,27 +464,34 @@ const MainPlaygroundPage = () => {
                   <TooltipContent>Save (Ctrl+S)</TooltipContent>
                 </Tooltip>
                 <Tooltip>
-                  <TooltipTrigger>
+                  <TooltipTrigger asChild>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={handleSaveAll}
                       disabled={!hasUnsavedChanges}
+                      className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/55 hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all shadow-sm"
                     >
                       <Save className="h-4 w-4" /> All
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
                 </Tooltip>
-
+ 
                 <ToggleAI
-                isEnabled={aiSuggestions.isEnabled}
-                onToggle={aiSuggestions.toggleEnabled}
-                suggestionLoading={aiSuggestions.isLoading}
+                  isEnabled={aiSuggestions.isEnabled}
+                  onToggle={aiSuggestions.toggleEnabled}
+                  suggestionLoading={aiSuggestions.isLoading}
+                  isChatOpen={isChatOpen}
+                  onChatToggle={setIsChatOpen}
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="rounded-lg border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/55 hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all shadow-sm"
+                    >
                       <Settings className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -413,6 +500,11 @@ const MainPlaygroundPage = () => {
                       onClick={() => setIsPreviewVisible(!isPreviewVisible)}
                     >
                       {isPreviewVisible ? "Hide" : "Show"} Preview
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setIsChatOpen(!isChatOpen)}
+                    >
+                      {isChatOpen ? "Hide" : "Show"} AI Chat Panel
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={closeAllFiles}>
@@ -423,9 +515,9 @@ const MainPlaygroundPage = () => {
               </div>
             </div>
           </header>
-          <div className="h-[calc(100vh-4rem)]">
+          <div className="flex-1 min-h-0 overflow-hidden relative">
             {openFiles.length > 0 ? (
-              <div className="h-full flex flex-col">
+              <div className="h-full flex flex-col min-h-0 overflow-hidden">
                 <div className="border-b bg-muted/30">
                   <Tabs
                     value={activeFileId || ""}
@@ -474,9 +566,9 @@ const MainPlaygroundPage = () => {
                     </div>
                   </Tabs>
                 </div>  
-                <div className="flex-1">
+                <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden">
                   <ResizablePanelGroup /*direction="horizontal"*/className="h-full">
-                    <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
+                    <ResizablePanel defaultSize={(isChatOpen || isPreviewVisible) ? 50 : 100}>
                       <PlaygroundEditor activeFile={activeFile} content={activeFile?.content || ""}
                       onContentChange={(value) => 
                         activeFileId && updateFileContent(activeFileId, value)
@@ -490,20 +582,37 @@ const MainPlaygroundPage = () => {
                       />
                     </ResizablePanel>
                     {
-                      isPreviewVisible && (
+                      (isChatOpen || isPreviewVisible) && (
                         <>
                           <ResizableHandle/>
                           <ResizablePanel defaultSize={50}>
-                            <WebConatinerPreview
-                              templateData={templateData}
-                              instance={instance}
-                              writeFileSync={writeFileSync}
-                              isLoading={containerLoading}
-                              error={containerError}
-                              serverUrl={serverUrl}
-                              forceResetup={false}
-                            />
-
+                            {isChatOpen ? (
+                              <div className="h-full border-l border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md flex flex-col overflow-hidden relative">
+                                <AIChatSidePanel
+                                  isOpen={isChatOpen}
+                                  onClose={() => setIsChatOpen(false)}
+                                  inline={true}
+                                  activeFileName={activeFile ? `${activeFile.filename}.${activeFile.fileExtension}` : undefined}
+                                  activeFileContent={activeFile?.content}
+                                  activeFileLanguage={activeFile ? getEditorLanguage(activeFile.fileExtension || "") : undefined}
+                                  onInsertCode={(code) => {
+                                    if (activeFileId) {
+                                      updateFileContent(activeFileId, code);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <WebConatinerPreview
+                                templateData={templateData}
+                                instance={instance}
+                                writeFileSync={writeFileSync}
+                                isLoading={containerLoading}
+                                error={containerError}
+                                serverUrl={serverUrl || ""}
+                                forceResetup={false}
+                              />
+                            )}
                           </ResizablePanel>
                         </>
                       )

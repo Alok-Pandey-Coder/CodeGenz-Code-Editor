@@ -290,7 +290,24 @@ function TemplateNode({
             onClick={() => onFileSelect?.(file)}
             className="flex-1"
           >
-            <File className="h-4 w-4 mr-2 shrink-0" />
+            {(() => {
+              const extension = file.fileExtension.toLowerCase();
+              let iconColor = "text-zinc-400 dark:text-zinc-500";
+              if (extension === "ts" || extension === "tsx") {
+                iconColor = "text-blue-500 dark:text-blue-400";
+              } else if (extension === "js" || extension === "jsx") {
+                iconColor = "text-amber-500 dark:text-amber-400";
+              } else if (extension === "css") {
+                iconColor = "text-teal-500 dark:text-teal-400";
+              } else if (extension === "json") {
+                iconColor = "text-orange-500 dark:text-orange-400";
+              } else if (extension === "html") {
+                iconColor = "text-rose-550 dark:text-rose-400";
+              } else if (extension === "md") {
+                iconColor = "text-purple-500 dark:text-purple-450";
+              }
+              return <File className={`h-4 w-4 mr-2 shrink-0 ${iconColor}`} />;
+            })()}
             <span>{fileName}</span>
           </SidebarMenuButton>
 
@@ -406,7 +423,7 @@ function TemplateNode({
             <CollapsibleTrigger asChild>
               <SidebarMenuButton className="flex-1">
                 <ChevronRight className="transition-transform" />
-                <Folder className="h-4 w-4 mr-2 shrink-0" />
+                <Folder className="h-4 w-4 mr-2 shrink-0 text-amber-500/80 dark:text-amber-400/85 fill-amber-500/10" />
                 <span>{folderName}</span>
               </SidebarMenuButton>
             </CollapsibleTrigger>

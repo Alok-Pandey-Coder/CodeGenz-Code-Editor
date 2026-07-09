@@ -6,33 +6,32 @@ import Image from "next/image"
 const AddRepo = () => {
   return (
     <div
-      className="group px-6 py-6 flex flex-row justify-between items-center border rounded-lg bg-muted cursor-pointer 
-      transition-all duration-300 ease-in-out
-      hover:bg-background hover:border-[#E93F3F] hover:scale-[1.02]
-      shadow-[0_2px_10px_rgba(0,0,0,0.08)]
-      hover:shadow-[0_10px_30px_rgba(233,63,63,0.15)]"
+      className="group px-6 py-8 flex flex-row justify-between items-center border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white/50 dark:bg-zinc-900/30 backdrop-blur-md cursor-pointer 
+      transition-all duration-350 ease-out
+      hover:bg-white dark:hover:bg-zinc-900/50 hover:border-cyan-500/40 hover:-translate-y-1
+      shadow-sm hover:shadow-[0_15px_30px_rgba(6,182,212,0.1)]"
     >
-      <div className="flex flex-row justify-center items-start gap-4">
+      <div className="flex flex-row justify-center items-center gap-4">
         <Button
           variant={"outline"}
-          className="flex justify-center items-center bg-white group-hover:bg-[#fff8f8] group-hover:border-[#E93F3F] group-hover:text-[#E93F3F] transition-colors duration-300"
+          className="flex justify-center items-center bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 group-hover:border-cyan-500 group-hover:text-cyan-500 transition-all duration-350"
           size={"icon"}
         >
-          <ArrowDown size={30} className="transition-transform duration-300 group-hover:translate-y-1" />
+          <ArrowDown size={20} className="transition-transform duration-350 group-hover:translate-y-1 text-zinc-500 group-hover:text-cyan-500" />
         </Button>
         <div className="flex flex-col">
-          <h1 className="text-xl font-bold text-[#e93f3f]">Open Github Repository</h1>
-          <p className="text-sm text-muted-foreground max-w-[220px]">Work with your repositories in our editor</p>
+          <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-600 to-teal-650 dark:from-cyan-400 dark:to-teal-400 bg-clip-text text-transparent">Import Repository</h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[220px] mt-0.5">Import and edit your existing Github projects</p>
         </div>
       </div>
 
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden hidden sm:block">
         <Image
           src={"/github.svg"}
           alt="Open GitHub repository"
-          width={150}
-          height={150}
-          className="transition-transform duration-300 group-hover:scale-110"
+          width={120}
+          height={120}
+          className="transition-transform duration-350 group-hover:scale-105 opacity-80"
         />
       </div>
     </div>

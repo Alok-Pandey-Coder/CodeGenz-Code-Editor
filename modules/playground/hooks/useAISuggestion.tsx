@@ -82,7 +82,7 @@ export const useAISuggestions = (): UseAISuggestionsReturn => {
           const data = await response.json();
           console.log("API response:", data);
 
-          if (data.suggestion) {
+          if (data.suggestion && data.suggestion.trim() !== "// AI suggestion unavailable") {
             const suggestionText = data.suggestion.trim();
             setState((prev) => ({
               ...prev,

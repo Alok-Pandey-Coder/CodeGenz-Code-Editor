@@ -6,7 +6,7 @@ export default function PlaygroundLayout({
 }: {children: React.ReactNode}) {
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-screen w-screen overflow-hidden">
       {children}
     </SidebarProvider>
   );

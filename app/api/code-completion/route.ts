@@ -138,8 +138,9 @@ async function generateSuggestion(prompt: string): Promise<string> {
         prompt,
         stream: false,
         options: {
-          temperature: 0.7,
-          max_tokens: 300,
+          temperature: 0.2,
+          num_predict: 64,
+          stop: ["\n\n", "```", "|CURSOR|"],
         },
       }),
     })

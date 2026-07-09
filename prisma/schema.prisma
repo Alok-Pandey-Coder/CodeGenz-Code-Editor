@@ -3,11 +3,11 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
-generator client {
+generator client {// This block defines the Prisma Client generator, which is responsible for generating the Prisma Client code based on the schema defined in this file. The Prisma Client is a type-safe database client that allows you to interact with your database using JavaScript or TypeScript.
   provider = "prisma-client-js"
 
 }
-
+// The `datasource` block defines the database connection details. In this case, we are using MongoDB as the database provider. The `url` field specifies the connection string for the MongoDB database, which is retrieved from an environment variable named `DATABASE_URL`. This allows you to keep sensitive information like database credentials out of your codebase and easily switch between different environments (e.g., development, staging, production) by changing the environment variable.
 datasource db {
   provider = "mongodb"
     url = env("DATABASE_URL")
@@ -22,6 +22,7 @@ model User {
   id String @id @default(cuid()) @map("_id")
   name String?
   email String @unique
+  password String?
   image String?
   accounts Account[]
   role UserRole @default(USER)
@@ -36,7 +37,7 @@ model Account {
   id String @id @default(cuid()) @map("_id")
   userId String @map("user_id")
   type String
-  provider String
+  provider String?
   providerAccountId String
   refreshToken String? @map("refresh_token")
   accessToken String? @map("access_token")
@@ -107,6 +108,15 @@ model ChatMessage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  token     String   @unique
+  expires   DateTime
+
+  @@unique([email, token])
 }
 
 

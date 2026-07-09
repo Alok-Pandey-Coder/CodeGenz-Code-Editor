@@ -11,7 +11,7 @@ export const getUserById = async(id:string) => {
         accounts: true
       }
     })
-    return true;
+    return user;
   } catch (error) {
     console.log(error);
     return null

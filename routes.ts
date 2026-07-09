@@ -1,5 +1,5 @@
 export const publicRoutes: string[] = [
-
+  "/"
 ]
 
 export const protectedRoutes: string[] = [
@@ -7,7 +7,10 @@ export const protectedRoutes: string[] = [
 ]
 
 export const authRoutes: string[] = [
-  "/auth/sign-in",
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password"
 ]
 
 export const apiAuthPrefix: string = "/api/auth"
