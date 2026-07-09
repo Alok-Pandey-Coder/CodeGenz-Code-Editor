@@ -8,7 +8,7 @@ import authConfig from "./auth.config";
 export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks:{
     async signIn({user, account}){
-      if(!user && !account) return false;
+      if(!user || !account) return false;
       const existingUser = await db.user.findUnique({
         where:{email:user.email!}
       })
@@ -106,7 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }
   },
   secret:process.env.AUTH_SECRET,
-  // adapter:PrismaAdapter(db),
+  // adapter:PrismaAdapter(db)
   session: { strategy: "jwt" },
   ...authConfig
 

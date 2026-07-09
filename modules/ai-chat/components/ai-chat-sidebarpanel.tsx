@@ -51,8 +51,79 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-// import { EnhancedCodeBlock } from "./ai-chat-code-blocks";
-// import { EnhancedFilePreview } from "./file-preview";
+
+const EnhancedCodeBlock = ({
+  className,
+  inline,
+  onInsert,
+  onRun,
+  theme,
+  children,
+  fileName
+}: any) => {
+  if (inline) {
+    return <code className={className}>{children}</code>;
+  }
+  return (
+    <div className="relative group/code border border-zinc-800 bg-zinc-950/80 rounded-lg p-3 font-mono text-xs overflow-x-auto leading-relaxed my-2">
+      {fileName && (
+        <div className="text-[10px] text-zinc-500 mb-1 border-b border-zinc-800 pb-1 font-bold">{fileName}</div>
+      )}
+      <pre className="overflow-x-auto"><code className={className}>{children}</code></pre>
+      <div className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity flex gap-1.5 z-10 bg-zinc-900 border border-zinc-800 px-1.5 py-1 rounded">
+        {onInsert && (
+          <button
+            onClick={() => onInsert(children)}
+            className="text-[10px] text-purple-400 hover:text-purple-300 font-bold cursor-pointer"
+          >
+            Insert
+          </button>
+        )}
+        {onRun && (
+          <button
+            onClick={() => onRun(children)}
+            className="text-[10px] text-emerald-400 hover:text-emerald-350 font-bold cursor-pointer"
+          >
+            Run
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const EnhancedFilePreview = ({ file, onRemove, compact, onInsert }: any) => {
+  return (
+    <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs">
+      <div className="flex items-center gap-2 truncate">
+        <Code className="h-4 w-4 text-blue-400 shrink-0" />
+        <span className="text-zinc-300 truncate font-semibold">{file.name}</span>
+        {file.size && (
+          <span className="text-[10px] text-zinc-500">{Math.round((file.size / 1024) * 10) / 10} KB</span>
+        )}
+      </div>
+      <div className="flex items-center gap-1.5 ml-2">
+        {onInsert && file.content && (
+          <button
+            onClick={() => onInsert(file.content)}
+            className="text-[10px] text-purple-400 hover:text-purple-300 font-bold cursor-pointer"
+          >
+            Insert
+          </button>
+        )}
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 import "katex/dist/katex.min.css";
 
 interface FileAttachment {
@@ -104,6 +175,7 @@ interface AIChatSidePanelProps {
   activeFileLanguage?: string;
   cursorPosition?: { line: number; column: number };
   theme?: "dark" | "light";
+  inline?: boolean;
 }
 
 const MessageTypeIndicator: React.FC<{
@@ -311,6 +383,7 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
   activeFileLanguage,
   cursorPosition,
   theme = "dark",
+  inline = false,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -870,20 +943,24 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
   return (
     <TooltipProvider>
       <>
-        {/* Backdrop */}
-        <div
-          className={cn(
-            "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300",
-            isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}
-          onClick={onClose}
-        />
+        {/* Backdrop - Only render if NOT inline */}
+        {!inline && (
+          <div
+            className={cn(
+              "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300",
+              isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+            onClick={onClose}
+          />
+        )}
 
-        {/* Side Panel */}
+        {/* Side Panel / Inline Container */}
         <div
           className={cn(
-            "fixed right-0 top-0 h-full w-full max-w-6xl bg-zinc-950 border-l border-zinc-800 z-50 flex flex-col transition-transform duration-300 ease-out shadow-2xl",
-            isOpen ? "translate-x-0" : "translate-x-full"
+            inline
+              ? "w-full h-full flex flex-col relative bg-transparent overflow-hidden"
+              : "fixed right-0 top-0 h-full w-full max-w-6xl bg-zinc-950 border-l border-zinc-800 z-50 flex flex-col transition-transform duration-300 ease-out shadow-2xl",
+            !inline && (isOpen ? "translate-x-0" : "translate-x-full")
           )}
           onDrop={handleDrop}
           onDragOver={(e) => {
@@ -1149,22 +1226,26 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
                             code: ({
                               children,
                               className,
-                              inline: _inline,
-                            }) => (
-                              <EnhancedCodeBlock
-                                className={className}
-                                inline={_inline as boolean}
-                                onInsert={
-                                  onInsertCode
-                                    ? (code) => handleInsertCode(code)
-                                    : undefined
-                                }
-                                onRun={onRunCode}
-                                theme={theme}
-                              >
-                                {String(children)}
-                              </EnhancedCodeBlock>
-                            ),
+                              ...props
+                            }) => {
+                              // @ts-ignore
+                              const inline = props.inline;
+                              return (
+                                <EnhancedCodeBlock
+                                  className={className}
+                                  inline={inline as boolean}
+                                  onInsert={
+                                    onInsertCode
+                                      ? (code: string) => handleInsertCode(code)
+                                      : undefined
+                                  }
+                                  onRun={onRunCode}
+                                  theme={theme}
+                                >
+                                  {String(children)}
+                                </EnhancedCodeBlock>
+                              );
+                            },
                           }}
                         >
                           {msg.content}
@@ -1187,7 +1268,7 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
                                 compact={true}
                                 onInsert={
                                   onInsertCode
-                                    ? (code) => handleInsertCode(code)
+                                    ? (code: string) => handleInsertCode(code)
                                     : undefined
                                 }
                               />
@@ -1315,7 +1396,7 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
                     compact={true}
                     onInsert={
                       onInsertCode
-                        ? (code) => handleInsertCode(code)
+                        ? (code: string) => handleInsertCode(code)
                         : undefined
                     }
                   />

@@ -46,7 +46,7 @@ interface ProjectTableProps {
   projects: Project[]
   onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
   onDeleteProject?: (id: string) => Promise<void>
-  onDuplicateProject?: (id: string) => Promise<void>
+  onDuplicateProject?: (id: string) => Promise<any>
   onMarkasFavorite?: (id: string) => Promise<void>
 }
 
@@ -151,32 +151,45 @@ export default function ProjectTable({
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
+      <div className="w-full border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md shadow-sm">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project</TableHead>
-              <TableHead>Template</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead className="w-[50px]">Actions</TableHead>
+          <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/30">
+            <TableRow className="border-b border-zinc-200 dark:border-zinc-800/80 hover:bg-transparent">
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Project</TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Template</TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Created</TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Owner</TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5 w-[50px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {projects.map((project) => (
-              <TableRow key={project.id}>
-                <TableCell className="font-medium">
+              <TableRow key={project.id} className="border-b border-zinc-150 dark:border-zinc-800/50 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/20 transition-colors">
+                <TableCell className="font-medium py-3.5">
                   <div className="flex flex-col">
-                    <Link href={`/playground/${project.id}`} className="hover:underline">
-                      <span className="font-semibold">{project.title}</span>
+                    <Link href={`/playground/${project.id}`} className="hover:underline font-semibold text-zinc-900 dark:text-zinc-100">
+                      {project.title}
                     </Link>
-                    <span className="text-sm text-gray-500 line-clamp-1">{project.description}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">{project.description}</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="bg-[#E93F3F15] text-[#E93F3F] border-[#E93F3F]">
-                    {project.template}
-                  </Badge>
+                <TableCell className="py-3.5">
+                  {(() => {
+                    const badgeStyles: Record<string, string> = {
+                      REACT: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-400/30",
+                      NEXTJS: "bg-zinc-950/10 dark:bg-zinc-800/40 text-zinc-900 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700",
+                      EXPRESS: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-400/30",
+                      VUE: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-400/30",
+                      HONO: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-400/30",
+                      ANGULAR: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-400/30",
+                    };
+                    const style = badgeStyles[project.template] || "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-400/30";
+                    return (
+                      <Badge variant="outline" className={`${style} font-semibold px-2 py-0.5 rounded-md text-[10px]`}>
+                        {project.template}
+                      </Badge>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell>{format(new Date(project.createdAt), "MMM d, yyyy")}</TableCell>
                 <TableCell>
@@ -184,7 +197,7 @@ export default function ProjectTable({
                     <div className="w-8 h-8 rounded-full overflow-hidden">
                       <Image
                         src={project.user.image || "/placeholder.svg"}
-                        alt={project.user.name}
+                        alt={project.user.name || "User"}
                         width={32}
                         height={32}
                         className="object-cover"

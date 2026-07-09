@@ -25,11 +25,25 @@ export default async function dashboardLayout({children}: {children: React.React
   return (
     <TooltipProvider>
     <SidebarProvider>
-      <div className="flex min-h-screen w-full overflow-x-hidden">
+      <div className="relative flex min-h-screen w-full overflow-x-hidden bg-background text-foreground">
+        {/* Grid Background */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20 z-0"
+          style={{
+            backgroundSize: "40px 40px",
+            backgroundImage: "linear-gradient(to right, #e4e4e7 1px, transparent 1px), linear-gradient(to bottom, #e4e4e7 1px, transparent 1px)",
+          }}
+        />
+        {/* Radial Mask */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/20 [mask-image:radial-gradient(ellipse_at_center,transparent_30%,black)] dark:bg-black/10 z-0" />
+        
+        {/* Ambient Glow Blob */}
+        <div className="absolute top-0 right-10 w-[300px] h-[300px] rounded-full bg-violet-500/10 dark:bg-violet-600/5 blur-[80px] pointer-events-none z-0" />
+
         {/* dashboard sidebar */}
         {/* @ts-ignore */}
         <DashboardSidebar initialPlaygroundData={formattedPlaygroundData}/>
-        <main className="flex-1">
+        <main className="relative flex-1 z-10 w-full">
           {children}
         </main>
       </div>
