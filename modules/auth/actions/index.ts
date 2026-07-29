@@ -2,6 +2,7 @@
 
 import  {auth} from "@/auth";
 import { db } from "@/lib/db"
+import { newData } from "../types";
 
 export const getUserById = async(id:string) => {
   try {
@@ -36,4 +37,27 @@ export const getAccountByUserId = async(userId: string) => {
 export const currentUser = async() => {
   const user = await auth();
   return user?.user;
+}
+
+export const updateUserDetails =  async(id:string, newData: newData) => {
+  const updatedUser = await db.user.update({
+    where: {
+      id,
+    },
+    data: {
+      name: newData.userName,
+      organization: newData.organization,
+      experience: newData.experience,
+      location: newData.location,
+      readMe: newData.readMe,
+      birthDate: newData.birthDate,
+      gender: newData.gender,
+    }
+  })
+
+  if(!updatedUser) {
+    return null;
+  }
+
+  return updatedUser; 
 }
