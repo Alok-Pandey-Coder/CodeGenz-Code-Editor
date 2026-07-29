@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from 'next/cache';
@@ -152,3 +153,13 @@ export const duplicateProjectById = async(id: string) => {
     console.log(error);
   }
 }
+
+// export const recentPlaygroundsForUser = async() => {
+//   const user = await currentUser();
+
+//   try {
+//     const playgrounds = await db.playground.fin
+//   } catch (error) {
+    
+//   }
+// }

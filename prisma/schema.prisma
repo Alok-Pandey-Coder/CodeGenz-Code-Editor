@@ -24,6 +24,13 @@ model User {
   email String @unique
   password String?
   image String?
+  organization String?
+  designation String?
+  birthDate DateTime? @db.Date
+  gender String?
+  location String?
+  experience String?
+  readMe String?
   accounts Account[]
   role UserRole @default(USER)
   myPlayground Playground[]
@@ -68,7 +75,7 @@ model Playground {
   description String?
   template Templates @default(REACT)
   createdAt DateTime @default(now())
-  upadatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt
   starMark StarMark[]
 
   userId String

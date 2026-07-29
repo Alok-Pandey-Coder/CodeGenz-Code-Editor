@@ -1,18 +1,24 @@
+"use client";
 
-"use client"
-
-import Image from "next/image"
-import { format } from "date-fns"
-import type { Project } from "../types"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import Image from "next/image";
+import { format } from "date-fns";
+import type { Project } from "../types";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -30,29 +36,39 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
-import { useState } from "react"
-import { MoreHorizontal, Edit3, Trash2, ExternalLink, Copy, Download, Eye } from "lucide-react"
-import { toast } from "sonner"
-import { MarkedToggleButton } from "./marked-toggle"
-
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { useState } from "react";
+import {
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  ExternalLink,
+  Copy,
+  Download,
+  Eye,
+} from "lucide-react";
+import { toast } from "sonner";
+import { MarkedToggleButton } from "./marked-toggle";
 
 interface ProjectTableProps {
-  projects: Project[]
-  onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
-  onDeleteProject?: (id: string) => Promise<void>
-  onDuplicateProject?: (id: string) => Promise<any>
-  onMarkasFavorite?: (id: string) => Promise<void>
+  projects: Project[];
+  onUpdateProject?: (
+    id: string,
+    data: { title: string; description: string },
+  ) => Promise<void>;
+  onDeleteProject?: (id: string) => Promise<void>;
+  onDuplicateProject?: (id: string) => Promise<any>;
+  onMarkasFavorite?: (id: string) => Promise<void>;
 }
 
 interface EditProjectData {
-  title: string
-  description: string
+  title: string;
+  description: string;
 }
 
 export default function ProjectTable({
@@ -62,92 +78,90 @@ export default function ProjectTable({
   onDuplicateProject,
   onMarkasFavorite,
 }: ProjectTableProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [editData, setEditData] = useState<EditProjectData>({ title: "", description: "" })
-  const [isLoading, setIsLoading] = useState(false)
-  const [favoutrie, setFavourite] = useState(false)
-  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [editData, setEditData] = useState<EditProjectData>({
+    title: "",
+    description: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [favoutrie, setFavourite] = useState(false);
+
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
     setEditData({
       title: project.title,
-      description: project.description || ""
-    })
-    setEditDialogOpen(true)
-  }
+      description: project.description || "",
+    });
+    setEditDialogOpen(true);
+  };
 
   const handleDeleteClick = async (project: Project) => {
     setSelectedProject(project);
 
     setDeleteDialogOpen(true);
-  }
+  };
 
   const handleUpdateProject = async () => {
-    if(!selectedProject || !onUpdateProject) return;
+    if (!selectedProject || !onUpdateProject) return;
 
     setIsLoading(true);
 
     try {
-      await onUpdateProject(selectedProject.id, editData)
+      await onUpdateProject(selectedProject.id, editData);
       setEditDialogOpen(false);
-      toast.success("Project updated Succesfully")
+      toast.success("Project updated Succesfully");
     } catch (error) {
-      toast.error("Failed to update project")
+      toast.error("Failed to update project");
       console.log("Error updating project:", error);
-    }
-    finally{
+    } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleMarkasFavorite = async (project: Project) => {
-   //    Write your logic here
-  }
+    //    Write your logic here
+  };
 
   const handleDeleteProject = async () => {
-    if(!selectedProject || !onDeleteProject) return;
+    if (!selectedProject || !onDeleteProject) return;
 
     setIsLoading(true);
 
     try {
       await onDeleteProject(selectedProject.id);
-      setDeleteDialogOpen (false);
+      setDeleteDialogOpen(false);
       setSelectedProject(null);
       toast.success("Project created Succesfully");
     } catch (error) {
       toast.error("Failed to delete project");
       console.log("Error deleting the project", error);
-    }
-    finally {
+    } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleDuplicateProject = async (project: Project) => {
-    if(!onDuplicateProject) return;
+    if (!onDuplicateProject) return;
 
     setIsLoading(true);
     try {
       await onDuplicateProject(project.id);
       toast.success("Project duplicated Succesfully");
-
     } catch (error) {
       toast.error("Failed to duplicate project");
       console.log("Error duplicating project", error);
-
-    }
-    finally{
+    } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const copyProjectUrl = (projectId: string) => {
     const url = `${window.location.origin}/playground/${projectId}`;
     navigator.clipboard.writeText(url);
     toast.success("Project url copied success to clipboard");
-  }
+  };
 
   return (
     <>
@@ -155,48 +169,77 @@ export default function ProjectTable({
         <Table>
           <TableHeader className="bg-zinc-50/50 dark:bg-zinc-900/30">
             <TableRow className="border-b border-zinc-200 dark:border-zinc-800/80 hover:bg-transparent">
-              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Project</TableHead>
-              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Template</TableHead>
-              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Created</TableHead>
-              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">Owner</TableHead>
-              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5 w-[50px]">Actions</TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">
+                Project
+              </TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">
+                Template
+              </TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">
+                Created
+              </TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5">
+                Owner
+              </TableHead>
+              <TableHead className="font-semibold text-zinc-500 dark:text-zinc-400 py-3.5 w-[50px]">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {projects.map((project) => (
-              <TableRow key={project.id} className="border-b border-zinc-150 dark:border-zinc-800/50 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/20 transition-colors">
+              <TableRow
+                key={project.id}
+                className="border-b border-zinc-150 dark:border-zinc-800/50 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/20 transition-colors"
+              >
                 <TableCell className="font-medium py-3.5">
                   <div className="flex flex-col">
-                    <Link href={`/playground/${project.id}`} className="hover:underline font-semibold text-zinc-900 dark:text-zinc-100">
+                    <Link
+                      href={`/playground/${project.id}`}
+                      className="font-semibold text-[15px] text-zinc-900 dark:text-zinc-100 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-200"
+                    >
                       {project.title}
                     </Link>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">{project.description}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">
+                      {project.description}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell className="py-3.5">
                   {(() => {
                     const badgeStyles: Record<string, string> = {
-                      REACT: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-400/30",
-                      NEXTJS: "bg-zinc-950/10 dark:bg-zinc-800/40 text-zinc-900 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700",
-                      EXPRESS: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-400/30",
+                      REACT:
+                        "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-400/30",
+                      NEXTJS:
+                        "bg-zinc-950/10 dark:bg-zinc-800/40 text-zinc-900 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700",
+                      EXPRESS:
+                        "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-400/30",
                       VUE: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-400/30",
                       HONO: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-400/30",
-                      ANGULAR: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-400/30",
+                      ANGULAR:
+                        "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-400/30",
                     };
-                    const style = badgeStyles[project.template] || "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-400/30";
+                    const style =
+                      badgeStyles[project.template] ||
+                      "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-400/30";
                     return (
-                      <Badge variant="outline" className={`${style} font-semibold px-2 py-0.5 rounded-md text-[10px]`}>
+                      <Badge
+                        variant="outline"
+                        className={`${style} font-semibold px-2 py-0.5 rounded-md text-[10px]`}
+                      >
                         {project.template}
                       </Badge>
                     );
                   })()}
                 </TableCell>
-                <TableCell>{format(new Date(project.createdAt), "MMM d, yyyy")}</TableCell>
+                <TableCell>
+                  {format(new Date(project.createdAt), "MMM d, yyyy")}
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full overflow-hidden">
                       <Image
-                        src={project.user.image || "/placeholder.svg"}
+                        src={project.user.image || "/logo2.svg"}
                         alt={project.user.name || "User"}
                         width={32}
                         height={32}
@@ -216,30 +259,46 @@ export default function ProjectTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem asChild>
-                        <MarkedToggleButton markedForRevision={project.starMark[0]?.isMarked} id={project.id} />
+                        <MarkedToggleButton
+                          markedForRevision={project.starMark[0]?.isMarked}
+                          id={project.id}
+                        />
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/playground/${project.id}`} className="flex items-center">
+                        <Link
+                          href={`/playground/${project.id}`}
+                          className="flex items-center"
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           Open Project
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/playground/${project.id}`} target="_blank" className="flex items-center">
+                        <Link
+                          href={`/playground/${project.id}`}
+                          target="_blank"
+                          className="flex items-center"
+                        >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           Open in New Tab
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleEditClick(project)}>
+                      <DropdownMenuItem
+                        onClick={() => handleEditClick(project)}
+                      >
                         <Edit3 className="h-4 w-4 mr-2" />
                         Edit Project
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
+                      <DropdownMenuItem
+                        onClick={() => handleDuplicateProject(project)}
+                      >
                         <Copy className="h-4 w-4 mr-2" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => copyProjectUrl(project.id)}>
+                      <DropdownMenuItem
+                        onClick={() => copyProjectUrl(project.id)}
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Copy URL
                       </DropdownMenuItem>
@@ -266,7 +325,8 @@ export default function ProjectTable({
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
-              Make changes to your project details here. Click save when you're done.
+              Make changes to your project details here. Click save when you're
+              done.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -275,7 +335,9 @@ export default function ProjectTable({
               <Input
                 id="title"
                 value={editData.title}
-                onChange={(e) => setEditData((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setEditData((prev) => ({ ...prev, title: e.target.value }))
+                }
                 placeholder="Enter project title"
               />
             </div>
@@ -284,17 +346,31 @@ export default function ProjectTable({
               <Textarea
                 id="description"
                 value={editData.description}
-                onChange={(e) => setEditData((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setEditData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 placeholder="Enter project description"
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button type="button" onClick={handleUpdateProject} disabled={isLoading || !editData.title.trim()}>
+            <Button
+              type="button"
+              onClick={handleUpdateProject}
+              disabled={isLoading || !editData.title.trim()}
+            >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
@@ -307,8 +383,9 @@ export default function ProjectTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedProject?.title}"? This action cannot be undone. All files and
-              data associated with this project will be permanently removed.
+              Are you sure you want to delete "{selectedProject?.title}"? This
+              action cannot be undone. All files and data associated with this
+              project will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -324,7 +401,5 @@ export default function ProjectTable({
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-
-
