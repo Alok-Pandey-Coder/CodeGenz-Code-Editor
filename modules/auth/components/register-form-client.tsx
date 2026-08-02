@@ -38,8 +38,7 @@ import Credentials from 'next-auth/providers/credentials'
   }
 
   const handleChanges = (e:React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({...formData, [e.target.name]: e.target.value});
-  }
+  
 
   const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
