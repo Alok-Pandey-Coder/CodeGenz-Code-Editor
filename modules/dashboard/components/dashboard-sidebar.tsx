@@ -728,7 +728,7 @@ export function DashboardSidebar({
                       asChild
                       className="gap-2 px-2.5 py-2 cursor-pointer text-xs"
                     >
-                      <Link href="/settings">
+                      <Link href="/profile/edit">
                         <Settings className="size-4" />
                         <span>Edit Profile</span>
                       </Link>
