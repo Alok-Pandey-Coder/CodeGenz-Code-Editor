@@ -145,7 +145,7 @@ const MainPlaygroundPage = () => {
       } catch (err) {
         console.error("Autosave error:", err);
       }
-    }, 850); // 850ms debounce after last keystroke
+    }, 2000); // 2 seconds debounce after last keystroke
 
     return () => clearTimeout(timer);
   }, [activeFileId, activeFile?.content, instance, openFiles, saveTemplateData, setTemplateData, setOpenFiles]);
