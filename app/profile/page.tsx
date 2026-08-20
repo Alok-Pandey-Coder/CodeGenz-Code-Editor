@@ -1,5 +1,5 @@
 import React from 'react'
-import MainProfileHeader, from '@/modules/profile/components/main-profile-header';
+import MainProfileHeader from '@/modules/profile/components/main-profile-header';
 import { ProfileData } from '@/modules/profile/actions';
 import ProfileUserData from '@/modules/profile/components/profile-user-data';
 
