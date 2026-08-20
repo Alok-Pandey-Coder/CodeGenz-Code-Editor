@@ -2,7 +2,7 @@ export interface LogoutButtonProps{
   children?: React.ReactNode
 }
 
-export type newData {
+export type newData = {
    userName: string,
     Avatar: string ,
     organization: string,
