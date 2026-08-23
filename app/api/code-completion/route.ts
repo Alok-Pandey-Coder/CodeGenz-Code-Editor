@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+export const dynamic = "force-dynamic"
+export const maxDuration = 60
+
 interface CodeSuggestionRequest {
   fileContent: string
   cursorLine: number

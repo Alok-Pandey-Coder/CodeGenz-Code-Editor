@@ -849,12 +849,16 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
           },
         ]);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg =
+          errorData.details ||
+          errorData.error ||
+          "Sorry, I encountered an error while processing your request. Please try again.";
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content:
-              "Sorry, I encountered an error while processing your request. Please try again.",
+            content: errorMsg,
             timestamp: new Date(),
             id: Date.now().toString(),
           },
