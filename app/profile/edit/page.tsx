@@ -30,7 +30,7 @@ const page = () => {
       const userData = await userBioInfo();
       if(userData) setFormData(prev => ({...prev, ...userData}))
     } catch (error: any) {
-      setError(error?.meassage ?? "error")
+      setError(error?.message ?? "error")
       toast.error("Failed to Load user data")
     }
     finally{

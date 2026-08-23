@@ -42,13 +42,13 @@ const ProfileUserData = async() => {
           <div>
             <SectionHeader title="About Me" />
             <p className="text-neutral-300 text-sm">
-              {userData.readMe ?? "Edit your ReadMe"}
+              {userData?.readMe ?? "Edit your ReadMe"}
             </p>
           </div>
 
           <div>
             <SectionHeader title="Experience - 0 Years" />
-            <p className="text-neutral-500 text-sm">{userData.experience ?? "Edit your experience"}</p>
+            <p className="text-neutral-500 text-sm">{userData?.experience ?? "Edit your experience"}</p>
           </div>
 
           
@@ -56,7 +56,7 @@ const ProfileUserData = async() => {
 
         {/* Right half — doughnut chart */}
         <div className="min-w-0">
-          <DoughnutChart  centerLabel="Complete" />
+          <DoughnutChart />
         </div>
       </div>
     </div>

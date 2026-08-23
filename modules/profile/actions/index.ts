@@ -15,10 +15,19 @@ interface editProfileData {
   designation: string,
 }
 
-export const ProfileData = async() =>  {
+export interface ProfileDataInfo {
+  userName: string;
+  avatarUrl: string;
+  allPlaygrounds: number;
+  starredPlaygrounds: number;
+  designation: string | null;
+  organization: string | null;
+}
+
+export const ProfileData = async (): Promise<ProfileDataInfo | null> => {
   const user = await currentUser();
 
-  if(!user) {
+  if(!user || !user.id) {
     return null
   }
 
@@ -30,11 +39,6 @@ export const ProfileData = async() =>  {
 
   if(!userData) {
     return null
-  }
-
-  const profileData = {
-    userName: userData?.name || "Alice",
-    avatarUrl: user?.image || "/logo2.svg",
   }
 
   const playgroundsCnt = await db.playground.count({
@@ -54,10 +58,14 @@ export const ProfileData = async() =>  {
     }
   })
 
-  profileData.allPlaygrounds = playgroundsCnt;
-  profileData.starredPlaygrounds = starredPlaygrounds
-  profileData.designation = userData.designation
-  profileData.organization = userData.organization
+  const profileData: ProfileDataInfo = {
+    userName: userData?.name || "Alice",
+    avatarUrl: user?.image || "/logo2.svg",
+    allPlaygrounds: playgroundsCnt,
+    starredPlaygrounds: starredPlaygrounds,
+    designation: userData.designation,
+    organization: userData.organization,
+  };
 
   return profileData;
 }
