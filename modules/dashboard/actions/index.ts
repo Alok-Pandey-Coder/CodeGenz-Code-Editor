@@ -43,17 +43,18 @@ export const toggleStarMarked = async(playgroundId: string, isChecked: boolean) 
 
 export const getAllPlaygroundForUser = async() => {
   const user = await currentUser();
+  if (!user?.id) return [];
 
   try {
     const playground = await db.playground.findMany({
       where: {
-        userId: user?.id
+        userId: user.id
       },
       include: {
         user: true,
         starMark: {
           where: {
-            userId: user?.id!
+            userId: user.id
           },
           select: {
             isMarked: true,
@@ -75,6 +76,7 @@ export const createPlayground = async(data: {
 }) => {
   
   const user = await currentUser();
+  if (!user?.id) throw new Error("User not authenticated");
   const {template, title, description} = data;
 
   try {
@@ -83,7 +85,7 @@ export const createPlayground = async(data: {
         title: title,
         description: description,
         template: template,
-        userId: user?.id!
+        userId: user.id
       }
     })
 

@@ -30,7 +30,6 @@ import WebConatinerPreview from "@/modules/webcontainers/components/webcontainer
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebcontainer";
 import { AlertCircle, Bot, FileText, FolderOpen, Save, Settings, X } from "lucide-react";
 import { useParams } from "next/navigation";
-import { writeFileSync } from "node:fs";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AIChatSidePanel } from "@/modules/ai-chat/components/ai-chat-sidebarpanel";
 import { getEditorLanguage } from "@/modules/playground/lib/editor-config";
@@ -339,22 +338,6 @@ const MainPlaygroundPage = () => {
   }, [handleSave]);
 
   // Error state
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
-        <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-semibold text-red-600 mb-2">
-          Something went wrong
-        </h2>
-        <p className="text-gray-600 mb-4">{error}</p>
-        <Button onClick={() => window.location.reload()} variant="destructive">
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">

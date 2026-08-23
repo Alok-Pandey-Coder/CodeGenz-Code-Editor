@@ -25,31 +25,34 @@ async function generateAIResponse(messages: ChatMessage[]) {
 Always provide clear, practical answers. When showing code, use proper formatting with language-specific syntax.
 Keep responses concise but comprehensive. Use code blocks with language specification when providing code examples.`
 
-  const fullMessages = [{ role: "system", content: systemPrompt }, ...messages]
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY is not configured in your environment variables (.env)")
+  }
 
-  const prompt = fullMessages.map((msg) => `${msg.role}: ${msg.content}`).join("\n\n")
+  const groqMessages = [
+    { role: "system", content: systemPrompt },
+    ...messages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    })),
+  ]
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 900000)
+  const timeoutId = setTimeout(() => controller.abort(), 60000)
 
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "codellama:latest",
-        prompt,
-        stream: false,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
-          max_tokens: 1000,
-          num_predict: 1000,
-          repeat_penalty: 1.1,
-          context_length: 4096,
-        },
+        model: "llama-3.3-70b-versatile",
+        messages: groqMessages,
+        temperature: 0.7,
+        max_tokens: 2048,
       }),
       signal: controller.signal,
     })
@@ -58,19 +61,20 @@ Keep responses concise but comprehensive. Use code blocks with language specific
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("Error from AI model API:", errorText)
-      throw new Error(`AI model API error: ${response.status} - ${errorText}`)
+      console.error("Error from Groq API:", errorText)
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    if (!data.response) {
-      throw new Error("No response from AI model")
+    const content = data.choices?.[0]?.message?.content
+    if (!content) {
+      throw new Error("No response received from Groq AI")
     }
-    return data.response.trim()
+    return content.trim()
   } catch (error) {
     clearTimeout(timeoutId)
     if ((error as Error).name === "AbortError") {
-      throw new Error("Request timeout: AI model took too long to respond")
+      throw new Error("Request timeout: Groq AI took too long to respond")
     }
     console.error("AI generation error:", error)
     throw error
@@ -78,6 +82,11 @@ Keep responses concise but comprehensive. Use code blocks with language specific
 }
 
 async function enhancePrompt(request: EnhancePromptRequest) {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) {
+    return request.prompt
+  }
+
   const enhancementPrompt = `You are a prompt enhancement assistant. Take the user's basic prompt and enhance it to be more specific, detailed, and effective for a coding AI assistant.
 
 Original prompt: "${request.prompt}"
@@ -94,19 +103,22 @@ Enhanced prompt should:
 Return only the enhanced prompt, nothing else.`
 
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "codellama:latest",
-        prompt: enhancementPrompt,
-        stream: false,
-        options: {
-          temperature: 0.3,
-          max_tokens: 500,
-        },
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "user",
+            content: enhancementPrompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 500,
       }),
     })
 
@@ -115,7 +127,7 @@ Return only the enhanced prompt, nothing else.`
     }
 
     const data = await response.json()
-    return data.response?.trim() || request.prompt
+    return data.choices?.[0]?.message?.content?.trim() || request.prompt
   } catch (error) {
     console.error("Prompt enhancement error:", error)
     return request.prompt // Return original if enhancement fails

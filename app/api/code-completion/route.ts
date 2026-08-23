@@ -129,30 +129,46 @@ Generate suggestion:`
  */
 async function generateSuggestion(prompt: string): Promise<string> {
   try {
-    // Replace this with your actual AI service call
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const apiKey = process.env.GROQ_API_KEY
+    if (!apiKey) {
+      console.error("GROQ_API_KEY is not configured")
+      return "// AI suggestion unavailable (missing GROQ_API_KEY)"
+    }
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        model: "codellama:latest",
-        prompt,
-        stream: false,
-        options: {
-          temperature: 0.2,
-          num_predict: 64,
-          stop: ["\n\n", "```", "|CURSOR|"],
-        },
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert code completion engine. Return ONLY the raw code to complete at the cursor without any explanation, markdown formatting, or surrounding backticks.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.2,
+        max_tokens: 128,
+        stop: ["\n\n\n", "|CURSOR|"],
       }),
     })
 
     if (!response.ok) {
-      throw new Error(`AI service error: ${response.statusText}`)
+      const errorText = await response.text()
+      throw new Error(`Groq service error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    let suggestion = data.response
+    let suggestion = data.choices?.[0]?.message?.content || ""
 
-    // Clean up the suggestion
+    // Clean up the suggestion if model returned markdown code block
     if (suggestion.includes("```")) {
       const codeMatch = suggestion.match(/```[\w]*\n?([\s\S]*?)```/)
       suggestion = codeMatch ? codeMatch[1].trim() : suggestion
