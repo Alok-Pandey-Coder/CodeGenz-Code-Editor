@@ -27,6 +27,7 @@ import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { findFilePath } from "@/modules/playground/lib";
 import { TemplateFile, TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import WebConatinerPreview from "@/modules/webcontainers/components/webcontainer-preview";
+import TerminalComponent, { type TerminalRef } from "@/modules/webcontainers/components/terminal";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebcontainer";
 import { AlertCircle, Bot, FileText, FolderOpen, Save, Settings, X } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -39,6 +40,7 @@ const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const terminalRef = useRef<TerminalRef>(null);
   const { playgroundData, isLoading, templateData, error, saveTemplateData } =
     usePlayground(id);
 
@@ -550,32 +552,56 @@ const MainPlaygroundPage = () => {
                   </Tabs>
                 </div>  
                 <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden">
-                  <ResizablePanelGroup /*direction="horizontal"*/className="h-full">
-                    <ResizablePanel defaultSize={(isChatOpen || isPreviewVisible) ? 50 : 100}>
-                      <PlaygroundEditor activeFile={activeFile} content={activeFile?.content || ""}
-                      onContentChange={(value) => 
-                        activeFileId && updateFileContent(activeFileId, value)
-                      }
-                      suggestion={aiSuggestions.suggestion}
-                      suggestionLoading={aiSuggestions.isLoading}
-                      suggestionPosition={aiSuggestions.position}
-                      onAcceptSuggestion={(editor, monaco) => aiSuggestions.acceptSuggestion(editor, monaco)}
-                      onRejectSuggestion={(editor) => aiSuggestions.rejectSuggestion(editor)}
-                      onTriggerSuggestion={(type, editor, fileName, immediate) =>
-                        aiSuggestions.fetchSuggestion(
-                          type,
-                          editor,
-                          fileName || (activeFile ? `${activeFile.filename}.${activeFile.fileExtension}` : undefined),
-                          immediate
-                        )
-                      }
-                      />
+                  <ResizablePanelGroup className="h-full">
+                    <ResizablePanel defaultSize={(isChatOpen || isPreviewVisible) ? 50 : 100} minSize={35}>
+                      <ResizablePanelGroup orientation="vertical" className="h-full">
+                        <ResizablePanel defaultSize={76} minSize={35}>
+                          <PlaygroundEditor activeFile={activeFile} content={activeFile?.content || ""}
+                            onContentChange={(value) =>
+                              activeFileId && updateFileContent(activeFileId, value)
+                            }
+                            suggestion={aiSuggestions.suggestion}
+                            suggestionLoading={aiSuggestions.isLoading}
+                            suggestionPosition={aiSuggestions.position}
+                            onAcceptSuggestion={(editor, monaco) => aiSuggestions.acceptSuggestion(editor, monaco)}
+                            onRejectSuggestion={(editor) => aiSuggestions.rejectSuggestion(editor)}
+                            onTriggerSuggestion={(type, editor, fileName, immediate) =>
+                              aiSuggestions.fetchSuggestion(
+                                type,
+                                editor,
+                                fileName || (activeFile ? `${activeFile.filename}.${activeFile.fileExtension}` : undefined),
+                                immediate
+                              )
+                            }
+                          />
+                        </ResizablePanel>
+                        <ResizableHandle withHandle />
+                        <ResizablePanel defaultSize={24} minSize={15}>
+                          <div className="flex h-full flex-col overflow-hidden border-t border-zinc-800 bg-zinc-950">
+                            <div className="flex h-9 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-900 px-3 text-[10px] font-medium text-zinc-400">
+                              <span className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                TERMINAL
+                              </span>
+                              <span className="font-mono text-zinc-600">WebContainer</span>
+                            </div>
+                            <div className="min-h-0 flex-1 p-2">
+                              <TerminalComponent
+                                ref={terminalRef}
+                                webContainerInstance={instance}
+                                theme="dark"
+                                className="h-full"
+                              />
+                            </div>
+                          </div>
+                        </ResizablePanel>
+                      </ResizablePanelGroup>
                     </ResizablePanel>
                     {
                       (isChatOpen || isPreviewVisible) && (
                         <>
-                          <ResizableHandle/>
-                          <ResizablePanel defaultSize={50}>
+                          <ResizableHandle withHandle />
+                          <ResizablePanel defaultSize={50} minSize={30}>
                             {isChatOpen ? (
                               <div className="h-full border-l border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md flex flex-col overflow-hidden relative">
                                 <AIChatSidePanel
@@ -601,6 +627,8 @@ const MainPlaygroundPage = () => {
                                 error={containerError}
                                 serverUrl={serverUrl || ""}
                                 forceResetup={false}
+                                terminalRef={terminalRef}
+                                showTerminal={false}
                               />
                             )}
                           </ResizablePanel>

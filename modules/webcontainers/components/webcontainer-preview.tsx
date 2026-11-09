@@ -10,7 +10,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import TerminalComponent from "./terminal";
+import TerminalComponent, { type TerminalRef } from "./terminal";
 import { WebContainer } from "@webcontainer/api";
 
 interface WebContainerPreviewProps {
@@ -21,6 +21,8 @@ interface WebContainerPreviewProps {
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
   forceResetup?: boolean; // Optional prop to force re-setup
+  terminalRef?: React.RefObject<TerminalRef | null>;
+  showTerminal?: boolean;
 }
 
 const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
@@ -31,6 +33,8 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   serverUrl,
   writeFileSync,
   forceResetup = false,
+  terminalRef: externalTerminalRef,
+  showTerminal = true,
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [loadingState, setLoadingState] = useState({
@@ -47,7 +51,8 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   const [isSetupInProgress, setIsSetupInProgress] = useState(false);
   
   // Ref to access terminal methods
-  const terminalRef = useRef<any>(null);
+  const internalTerminalRef = useRef<TerminalRef>(null);
+  const terminalRef = externalTerminalRef ?? internalTerminalRef;
 
   // Reset setup state when forceResetup changes
   useEffect(() => {
@@ -357,7 +362,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
           </div>
 
           {/* Terminal */}
-          <div className="flex-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-950 shadow-md overflow-hidden flex flex-col">
+          {showTerminal && <div className="flex-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-950 shadow-md overflow-hidden flex flex-col">
             <div className="h-9 border-b border-zinc-900 bg-zinc-950 px-4 flex items-center justify-between text-[9px] font-mono text-zinc-500 select-none">
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -373,7 +378,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
                 className="h-full"
               />
             </div>
-          </div>
+          </div>}
         </div>
       ) : (
         <ResizablePanelGroup
@@ -410,9 +415,9 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
             </div>
           </ResizablePanel>
           
-          <ResizableHandle withHandle className="my-2" />
+          {showTerminal && <ResizableHandle withHandle className="my-2" />}
 
-          <ResizablePanel defaultSize={28} minSize={15}>
+          {showTerminal && <ResizablePanel defaultSize={28} minSize={15}>
             <div className="h-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-950 shadow-md overflow-hidden flex flex-col">
               <div className="h-9 shrink-0 border-b border-zinc-900 bg-zinc-950 px-4 flex items-center justify-between text-[9px] font-mono text-zinc-500 select-none">
                 <span className="flex items-center gap-2">
@@ -430,7 +435,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
                 />
               </div>
             </div>
-          </ResizablePanel>
+          </ResizablePanel>}
         </ResizablePanelGroup>
       )}
     </div>
