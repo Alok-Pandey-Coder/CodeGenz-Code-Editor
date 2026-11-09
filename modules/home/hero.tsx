@@ -562,7 +562,7 @@ export default function VibeApp() {
   }, [isPlayingTour, tourStep, chatMessages, isTerminalRunning]);
 
   return (
-    <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28 flex flex-col items-center justify-center w-full z-10">
+    <section className="relative flex w-full flex-col items-center justify-center overflow-hidden px-4 pb-24 pt-20 md:pb-32 md:pt-28 z-10">
       
       {/* Dynamic Glow Blobs Behind Content */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full bg-violet-500/10 dark:bg-violet-600/10 blur-[80px] sm:blur-[120px] pointer-events-none z-0" />
@@ -572,12 +572,12 @@ export default function VibeApp() {
       )}
 
       {/* Main Content Area */}
-      <div className="relative z-10 flex flex-col items-center max-w-7xl mx-auto px-4 text-center">
+      <div className="relative z-10 flex w-full max-w-7xl flex-col items-center text-center">
         
         {/* Banner Announcement Badge */}
         <div 
           onClick={() => setIsVibeMode(!isVibeMode)}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-full border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md text-zinc-800 dark:text-zinc-200 shadow-sm mb-6 hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-purple-500/10 hover:shadow-lg transition-all duration-300 cursor-pointer"
+          className="mb-8 inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-white/75 px-4 py-2 text-xs font-semibold text-zinc-800 shadow-[0_8px_30px_-14px_rgba(124,58,237,0.6)] backdrop-blur-md transition-all duration-300 hover:border-violet-400 hover:shadow-violet-500/20 dark:border-violet-400/20 dark:bg-zinc-900/70 dark:text-zinc-200 cursor-pointer"
         >
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -590,7 +590,7 @@ export default function VibeApp() {
         </div>
 
         {/* Hero Title */}
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight text-center max-w-5xl leading-[1.08] mb-6">
+        <h1 className="mb-7 max-w-5xl text-5xl font-black leading-[1.02] tracking-[-0.05em] text-zinc-950 sm:text-6xl md:text-8xl dark:text-white">
           Vibe Code With{" "}
           <span className={`relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 dark:from-violet-400 dark:via-indigo-400 dark:to-cyan-300 transition-all duration-500 ${
             isVibeMode ? "drop-shadow-[0_0_25px_rgba(168,85,247,0.45)] dark:drop-shadow-[0_0_25px_rgba(168,85,247,0.35)]" : ""
@@ -603,13 +603,13 @@ export default function VibeApp() {
         </h1>
 
         {/* Hero Description */}
-        <p className="text-base sm:text-lg md:text-xl text-center text-zinc-600 dark:text-zinc-400 max-w-3xl px-4 mb-8 leading-relaxed">
+        <p className="mb-9 max-w-2xl px-4 text-base leading-7 text-zinc-600 dark:text-zinc-400 sm:text-lg md:text-xl">
           The first AI-first browser IDE that thinks, writes, and runs code side-by-side. 
           Prompt to generate whole modules, autocomplete instantly with predictive code, and test real-time compilation, all inside a browser container.
         </p>
 
         {/* CTAs Group */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4 mb-14">
+        <div className="mb-16 flex w-full flex-col items-center justify-center gap-4 px-4 sm:flex-row">
           <Link href="/dashboard" className="w-full sm:w-auto">
             <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold shadow-[0_4px_20px_rgba(99,102,241,0.25)] dark:shadow-[0_4px_20px_rgba(99,102,241,0.15)] hover:shadow-indigo-500/40 rounded-xl px-8 h-12 flex items-center justify-center gap-2 group transition-all duration-300">
               Start Vibing Free
@@ -626,6 +626,12 @@ export default function VibeApp() {
             <Play className={`w-4 h-4 ${isPlayingTour ? "animate-spin text-purple-500" : "fill-current text-zinc-600 dark:text-zinc-400"}`} />
             {isPlayingTour ? `Simulating Tour (Step ${tourStep}/4)...` : "Interactive Tour Demo"}
           </Button>
+        </div>
+
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Browser-native workspace</span>
+          <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> AI autocomplete</span>
+          <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Live preview and terminal</span>
         </div>
 
         {/* Interactive IDE Mockup Container */}

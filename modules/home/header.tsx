@@ -8,10 +8,9 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/75 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/75">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 lg:px-8">
-              <div className="flex items-center justify-between">
+        <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:px-8">
                 {/* Left side: Logo */}
-                <div className="flex items-center">
+                <div className="flex items-center justify-self-start">
                   <Link
                     href="/"
                     className="flex items-center gap-2"
@@ -31,7 +30,7 @@ export function Header() {
                 </div>
 
                 {/* Center: Desktop Navigation Links (Centered Pill) */}
-                <nav className="hidden md:flex items-center gap-1 rounded-xl border border-zinc-200/70 bg-zinc-50/80 p-1 dark:border-white/10 dark:bg-white/5">
+                <nav className="hidden md:flex items-center justify-center gap-1 rounded-xl border border-zinc-200/70 bg-zinc-50/80 p-1 dark:border-white/10 dark:bg-white/5">
                   <Link
                     href="/docs"
                     className="rounded-lg px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:bg-white hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white"
@@ -72,13 +71,13 @@ export function Header() {
                 </nav>
 
                 {/* Right side: Desktop Actions */}
-                <div className="hidden md:flex items-center gap-2">
+                <div className="hidden md:flex items-center justify-self-end gap-2">
                   <ThemeToggle /> 
                   <UserButton />
                 </div>
 
                 {/* Mobile Navigation */}
-                <div className="flex items-center gap-2 md:hidden">
+                <div className="col-span-2 flex items-center justify-self-end gap-2 md:hidden">
                   <Link
                     href="/docs"
                     className="text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors font-semibold"
@@ -99,7 +98,6 @@ export function Header() {
                   </Link>
                   <ThemeToggle /> 
                   <UserButton />
-                </div>
               </div>
         </div>
       </header>
