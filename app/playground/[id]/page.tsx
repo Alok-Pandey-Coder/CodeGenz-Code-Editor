@@ -561,7 +561,14 @@ const MainPlaygroundPage = () => {
                       suggestionPosition={aiSuggestions.position}
                       onAcceptSuggestion={(editor, monaco) => aiSuggestions.acceptSuggestion(editor, monaco)}
                       onRejectSuggestion={(editor) => aiSuggestions.rejectSuggestion(editor)}
-                      onTriggerSuggestion={(type, editor) => aiSuggestions.fetchSuggestion(type, editor)}
+                      onTriggerSuggestion={(type, editor, fileName, immediate) =>
+                        aiSuggestions.fetchSuggestion(
+                          type,
+                          editor,
+                          fileName || (activeFile ? `${activeFile.filename}.${activeFile.fileExtension}` : undefined),
+                          immediate
+                        )
+                      }
                       />
                     </ResizablePanel>
                     {

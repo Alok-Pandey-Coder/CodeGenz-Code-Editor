@@ -132,7 +132,7 @@ async function generateSuggestion(prompt: string): Promise<string> {
     const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) {
       console.error("GROQ_API_KEY is not configured")
-      return "// AI suggestion unavailable (missing GROQ_API_KEY)"
+      return ""
     }
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -142,19 +142,19 @@ async function generateSuggestion(prompt: string): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b",
         messages: [
           {
             role: "system",
             content:
-              "You are an expert code completion engine. Return ONLY the raw code to complete at the cursor without any explanation, markdown formatting, or surrounding backticks.",
+              "You are an expert real-time code completion engine. Return ONLY the raw code to be inserted at the cursor position. Do NOT wrap in markdown code blocks, do NOT include explanations, do NOT include markdown backticks.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        temperature: 0.2,
+        temperature: 0.1,
         max_tokens: 128,
         stop: ["\n\n\n", "|CURSOR|"],
       }),
@@ -162,7 +162,8 @@ async function generateSuggestion(prompt: string): Promise<string> {
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(`Groq service error: ${response.status} - ${errorText}`)
+      console.error(`Groq API error ${response.status}:`, errorText)
+      return ""
     }
 
     const data = await response.json()
@@ -171,16 +172,16 @@ async function generateSuggestion(prompt: string): Promise<string> {
     // Clean up the suggestion if model returned markdown code block
     if (suggestion.includes("```")) {
       const codeMatch = suggestion.match(/```[\w]*\n?([\s\S]*?)```/)
-      suggestion = codeMatch ? codeMatch[1].trim() : suggestion
+      suggestion = codeMatch ? codeMatch[1] : suggestion.replace(/```/g, "")
     }
 
     // Remove cursor markers if present
-    suggestion = suggestion.replace(/\|CURSOR\|/g, "").trim()
+    suggestion = suggestion.replace(/\|CURSOR\|/g, "")
 
     return suggestion
   } catch (error) {
     console.error("AI generation error:", error)
-    return "// AI suggestion unavailable"
+    return ""
   }
 }
 
@@ -193,19 +194,44 @@ function detectLanguage(content: string, fileName?: string): string {
       tsx: "TypeScript",
       js: "JavaScript",
       jsx: "JavaScript",
+      mjs: "JavaScript",
+      cjs: "JavaScript",
       py: "Python",
       java: "Java",
+      c: "C",
+      cpp: "C++",
+      cs: "C#",
+      php: "PHP",
+      rb: "Ruby",
       go: "Go",
       rs: "Rust",
-      php: "PHP",
+      sh: "Shell",
+      bash: "Shell",
+      sql: "SQL",
+      json: "JSON",
+      html: "HTML",
+      htm: "HTML",
+      css: "CSS",
+      scss: "SCSS",
+      sass: "SASS",
+      less: "LESS",
+      md: "Markdown",
+      markdown: "Markdown",
+      xml: "XML",
+      yaml: "YAML",
+      yml: "YAML",
     }
     if (ext && extMap[ext]) return extMap[ext]
   }
 
   // Content-based detection
-  if (content.includes("interface ") || content.includes(": string")) return "TypeScript"
-  if (content.includes("def ") || content.includes("import ")) return "Python"
+  if (content.includes("interface ") || content.includes(": string") || content.includes(": number")) return "TypeScript"
+  if (content.includes("def ") || content.includes("import ") && content.includes(":\n")) return "Python"
   if (content.includes("func ") || content.includes("package ")) return "Go"
+  if (content.includes("fn main()") || content.includes("pub fn ")) return "Rust"
+  if (content.includes("public class ") || content.includes("public static void main")) return "Java"
+  if (content.includes("<?php")) return "PHP"
+  if (content.includes("<html") || content.includes("<!DOCTYPE html>")) return "HTML"
 
   return "JavaScript"
 }
