@@ -11,13 +11,13 @@ interface AISuggestionsState {
 
 interface UseAISuggestionsReturn extends AISuggestionsState {
   toggleEnabled: () => void;
-  fetchSuggestion: (type: string, editor: any) => void;
+  fetchSuggestion: (type: string, editor: any, fileName?: string, immediate?: boolean) => void;
   acceptSuggestion: (editor: any, monaco: any) => void;
   rejectSuggestion: (editor: any) => void;
   clearSuggestion: (editor: any) => void;
 }
 
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 250;
 const isDev = process.env.NODE_ENV === "development";
 const devLog = (...args: any[]) => {
   if (isDev) console.log(...args);
@@ -43,6 +43,7 @@ export const useAISuggestions = (): UseAISuggestionsReturn => {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Guards against setState after unmount.
   const isMountedRef = useRef(true);
+  const isEnabledRef = useRef(true);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -55,105 +56,106 @@ export const useAISuggestions = (): UseAISuggestionsReturn => {
 
   const toggleEnabled = useCallback(() => {
     devLog("Toggling AI suggestions");
-    setState((prev) => ({ ...prev, isEnabled: !prev.isEnabled }));
+    setState((prev) => {
+      const isEnabled = !prev.isEnabled;
+      isEnabledRef.current = isEnabled;
+      if (!isEnabled) {
+        requestIdRef.current += 1;
+        abortControllerRef.current?.abort();
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      }
+      return { ...prev, isEnabled, suggestion: null, position: null, isLoading: false };
+    });
   }, []);
 
-  const fetchSuggestion = useCallback((type: string, editor: any) => {
-    // Reset any pending debounce so only the latest keystroke actually fires.
+  const fetchSuggestion = useCallback((type: string, editor: any, fileName?: string, immediate = false) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
-    debounceTimerRef.current = setTimeout(() => {
-      setState((currentState) => {
-        if (!currentState.isEnabled) {
-          devLog("AI suggestions are disabled.");
-          return currentState;
-        }
+    const executeFetch = () => {
+      if (!editor) {
+        devLog("Editor instance is not available.");
+        return;
+      }
+      if (!isEnabledRef.current) {
+        devLog("AI suggestions are disabled.");
+        return;
+      }
 
-        if (!editor) {
-          devLog("Editor instance is not available.");
-          return currentState;
-        }
+      const model = editor.getModel();
+      const cursorPosition = editor.getPosition();
+      if (!model || !cursorPosition) {
+        devLog("Editor model or cursor position is not available.");
+        return;
+      }
 
-        const model = editor.getModel();
-        const cursorPosition = editor.getPosition();
+      const thisRequestId = ++requestIdRef.current;
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-        if (!model || !cursorPosition) {
-          devLog("Editor model or cursor position is not available.");
-          return currentState;
-        }
+      setState((currentState) => ({ ...currentState, isLoading: true, error: null }));
 
-        const thisRequestId = ++requestIdRef.current;
+      (async () => {
+        try {
+          const payload = {
+            fileContent: model.getValue(),
+            cursorLine: cursorPosition.lineNumber - 1,
+            cursorColumn: cursorPosition.column - 1,
+            suggestionType: type,
+            fileName,
+          };
+          devLog("Request payload:", payload);
 
-        // Cancel any previous in-flight request before starting a new one.
-        abortControllerRef.current?.abort();
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
+          const response = await fetch("/api/code-completion", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
 
-        const newState = { ...currentState, isLoading: true, error: null };
+          if (!response.ok) {
+            throw new Error(`API responded with status ${response.status}`);
+          }
 
-        (async () => {
-          try {
-            const payload = {
-              fileContent: model.getValue(),
-              cursorLine: cursorPosition.lineNumber - 1,
-              cursorColumn: cursorPosition.column - 1,
-              suggestionType: type,
-            };
-            devLog("Request payload:", payload);
+          const data = await response.json();
+          devLog("API response:", data);
+          if (thisRequestId !== requestIdRef.current || !isMountedRef.current) return;
 
-            const response = await fetch("/api/code-completion", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-              signal: controller.signal,
-            });
-
-            if (!response.ok) {
-              throw new Error(`API responded with status ${response.status}`);
-            }
-
-            const data = await response.json();
-            devLog("API response:", data);
-
-            // Discard if a newer request has started or we've unmounted.
-            if (thisRequestId !== requestIdRef.current || !isMountedRef.current) {
-              return;
-            }
-
-            if (data.suggestion && data.suggestion.trim() !== "// AI suggestion unavailable") {
-              const suggestionText = data.suggestion.trim();
-              setState((prev) => ({
-                ...prev,
-                suggestion: suggestionText,
-                position: {
-                  line: cursorPosition.lineNumber,
-                  column: cursorPosition.column,
-                },
-                isLoading: false,
-                error: null,
-              }));
-            } else {
-              devLog("No suggestion received from API.");
-              setState((prev) => ({ ...prev, isLoading: false }));
-            }
-          } catch (error: any) {
-            // Expected when we abort an old request in favor of a new one — not a real error.
-            if (error?.name === "AbortError") return;
-
-            if (thisRequestId !== requestIdRef.current || !isMountedRef.current) return;
-
-            console.error("Error fetching code suggestion:", error);
+          const suggestionText = typeof data.suggestion === "string" ? data.suggestion : "";
+          if (suggestionText.trim()) {
             setState((prev) => ({
               ...prev,
+              suggestion: suggestionText,
+              position: {
+                line: cursorPosition.lineNumber,
+                column: cursorPosition.column,
+              },
               isLoading: false,
-              error: "Failed to fetch suggestion",
+              error: null,
             }));
+          } else {
+            devLog("No suggestion received from API.");
+            setState((prev) => ({ ...prev, isLoading: false }));
           }
-        })();
+        } catch (error: any) {
+          if (error?.name === "AbortError") return;
+          if (thisRequestId !== requestIdRef.current || !isMountedRef.current) return;
 
-        return newState;
-      });
-    }, DEBOUNCE_MS);
+          console.error("Error fetching code suggestion:", error);
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error: "Failed to fetch suggestion",
+          }));
+        }
+      })();
+    };
+
+    if (immediate) {
+      executeFetch();
+    } else {
+      debounceTimerRef.current = setTimeout(executeFetch, DEBOUNCE_MS);
+    }
   }, []);
 
   const acceptSuggestion = useCallback((editor: any, monaco: any) => {
