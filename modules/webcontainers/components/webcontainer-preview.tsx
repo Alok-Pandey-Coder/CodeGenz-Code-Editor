@@ -5,6 +5,11 @@ import type { TemplateFolder } from "@/modules/playground/lib/path-to-json";
 import { transformToWebContainerFormat } from "../hooks/tranformer";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import TerminalComponent from "./terminal";
 import { WebContainer } from "@webcontainer/api";
 
@@ -371,63 +376,62 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
           </div>
         </div>
       ) : (
-        <div className="h-full flex flex-col p-4 space-y-4">
+        <ResizablePanelGroup
+          orientation="vertical"
+          className="h-full min-h-0 gap-0 p-4"
+        >
           {/* Preview with Browser Chrome */}
-          <div className="flex-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-md overflow-hidden flex flex-col">
-            
-            {/* Browser Header Bar */}
-            <div className="h-10 border-b border-zinc-200 dark:border-zinc-850 bg-zinc-50/50 dark:bg-zinc-900/30 px-4 flex items-center gap-3 select-none">
-              {/* Traffic light dots */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-                <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-                <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+          <ResizablePanel defaultSize={72} minSize={35}>
+            <div className="h-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-md overflow-hidden flex flex-col">
+              {/* Browser Header Bar */}
+              <div className="h-10 shrink-0 border-b border-zinc-200 dark:border-zinc-850 bg-zinc-50/50 dark:bg-zinc-900/30 px-4 flex items-center gap-3 select-none">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                  <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                  <div className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                </div>
+                <div className="flex items-center gap-2.5 text-zinc-400 dark:text-zinc-500 shrink-0 font-mono text-xs">
+                  <span>&larr;</span>
+                  <span>&rarr;</span>
+                  <span className="font-bold">&#8635;</span>
+                </div>
+                <div className="flex-1 max-w-lg bg-white/70 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-md px-4 py-0.5 text-[10px] font-mono text-zinc-500 dark:text-zinc-400 text-center truncate shadow-inner flex items-center justify-center gap-1">
+                  <span className="text-emerald-500 font-bold">🔒</span>
+                  localhost:3000
+                </div>
               </div>
-              
-              {/* Browser Navigation Arrows */}
-              <div className="flex items-center gap-2.5 text-zinc-400 dark:text-zinc-500 shrink-0 font-mono text-xs">
-                <span className="cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-200">&larr;</span>
-                <span className="cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-200">&rarr;</span>
-                <span className="cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-200 font-bold">&#8635;</span>
-              </div>
-
-              {/* Simulated URL bar */}
-              <div className="flex-1 max-w-lg bg-white/70 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-md px-4 py-0.5 text-[10px] font-mono text-zinc-500 dark:text-zinc-400 text-center truncate shadow-inner flex items-center justify-center gap-1">
-                <span className="text-emerald-500 font-bold">🔒</span>
-                localhost:3000
+              <div className="flex-1 min-h-0 bg-white">
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full border-none"
+                  title="WebContainer Preview"
+                />
               </div>
             </div>
-
-            {/* Iframe View */}
-            <div className="flex-1 bg-white">
-              <iframe
-                src={previewUrl}
-                className="w-full h-full border-none"
-                title="WebContainer Preview"
-              />
-            </div>
-
-          </div>
+          </ResizablePanel>
           
-          {/* Terminal at bottom when preview is ready */}
-          <div className="h-60 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-950 shadow-md overflow-hidden flex flex-col">
-            <div className="h-9 border-b border-zinc-900 bg-zinc-950 px-4 flex items-center justify-between text-[9px] font-mono text-zinc-500 select-none">
-              <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Terminal Output Stream
-              </span>
-              <span>xterm.js</span>
+          <ResizableHandle withHandle className="my-2" />
+
+          <ResizablePanel defaultSize={28} minSize={15}>
+            <div className="h-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-950 shadow-md overflow-hidden flex flex-col">
+              <div className="h-9 shrink-0 border-b border-zinc-900 bg-zinc-950 px-4 flex items-center justify-between text-[9px] font-mono text-zinc-500 select-none">
+                <span className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Terminal Output Stream
+                </span>
+                <span>xterm.js</span>
+              </div>
+              <div className="flex-1 min-h-0 p-2">
+                <TerminalComponent
+                  ref={terminalRef}
+                  webContainerInstance={instance}
+                  theme="dark"
+                  className="h-full"
+                />
+              </div>
             </div>
-            <div className="flex-1 p-2">
-              <TerminalComponent 
-                ref={terminalRef}
-                webContainerInstance={instance}
-                theme="dark"
-                className="h-full"
-              />
-            </div>
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       )}
     </div>
   );
