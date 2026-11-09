@@ -8,8 +8,13 @@ import React from "react";
 const page = async () => {
   const playground = await getAllPlaygroundForUser();
   return (
-    <div className="flex flex-col justify-start items-center min-h-screen mx-auto mx-w-7xl px-4 py-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+    <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center justify-start px-5 py-8 lg:px-8 lg:py-12">
+      <div className="mb-8 w-full">
+        <p className="eyebrow">Workspace</p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 dark:text-white">Your projects</h1>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Create, manage, and ship your next idea.</p>
+      </div>
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
         <AddNewButton />
         <AddRepo />
       </div>

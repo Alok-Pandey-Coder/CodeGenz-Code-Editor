@@ -1,46 +1,15 @@
 import Link from "next/link";
 
-
-interface ProjectLink {
-  href: string | null;
-  text: string;
-  description: string;
-  icon: string;
-  iconDark?: string;
-  isNew?: boolean;
-}
-
 export function Footer() {
-  // const socialLinks = [
-  //   {
-  //     href: "#",
-  //     icon: (
-  //       // <LucideGithub className="w-5 h-5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors" />
-  //     ),
-  //   },
-  // ];
-
   return (
-    <footer className="border-t border-zinc-200 dark:border-zinc-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 flex flex-col items-center space-y-6 text-center">
-        {/* Social Links */}
-        {/* <div className="flex gap-4"> */}
-          {/* {socialLinks.map((link, index) => (
-            <Link
-              key={index}
-              href={link.href || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {link.icon}
-            </Link>
-          ))}
-        </div> *}/
-
-        {/* Copyright Notice */}
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          &copy; {new Date().getFullYear()} Codesnippet. All rights reserved.
-        </p>
+    <footer className="border-t border-zinc-200/70 bg-white/40 dark:border-white/10 dark:bg-zinc-950/30">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+        <p>&copy; {new Date().getFullYear()} VibeCode. Build boldly.</p>
+        <div className="flex gap-5">
+          <Link href="/docs" className="transition hover:text-violet-600">Documentation</Link>
+          <Link href="/contact" className="transition hover:text-violet-600">Support</Link>
+          <Link href="/pricing" className="transition hover:text-violet-600">Pricing</Link>
+        </div>
       </div>
     </footer>
   );
